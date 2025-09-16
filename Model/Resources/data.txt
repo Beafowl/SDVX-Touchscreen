@@ -1,0 +1,12 @@
+Config for 1440p and game turned 90 degress counterclockwise
+Panel hat leichte Glättung
+Bereiche ohne Glättung
+(1888,123) oben links
+(2560,1317) unten rechts
+672 breit, 1194 hoch
+
+Bereiche mit Glättung
+(1887,122) oben links
+(2560,1318) unten rechts
+
+
