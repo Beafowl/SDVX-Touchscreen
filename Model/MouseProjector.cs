@@ -21,7 +21,7 @@ namespace Model
         public void HandleMouseClick(int posX, int posY)
         {
             // TODO: Calculate position in new window and perform mouse click
-            NativeMethods.SendClickWithoutMoving(_windowX + posX, _windowY + posY);
+            NativeMethods.SendMouseEvent(_windowX + posX, _windowY + posY);
             //SimMouse.Click(MouseButtons.Left, _windowX + posX, _windowY + posY);
         }
     }

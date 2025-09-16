@@ -8,9 +8,11 @@
         xmlns:local="clr-namespace:View"
         mc:Ignorable="d"
         Title="SDVX Touchscreen"
-        Height="450"
-        Width="800"
-        PreviewMouseDown="OnMouseDown"
+        Height="1080"
+        Width="1920"
+        PreviewMouseLeftButtonDown="OnMouseLeftButtonDown"
+        PreviewMouseLeftButtonUp="OnMouseLeftButtonUp"
+        PreviewMouseMove="OnMouseMove"
         PreviewKeyDown="OnKeyDown"
         Topmost="True"
         Background="Black"
@@ -43,7 +45,7 @@
         <vm:MainViewModel />
     </Window.DataContext>
     <Grid>
-        <MediaElement Style="{StaticResource Fade}" Name="myMediaElement" Stretch="UniformToFill" MediaEnded="mediaElement_OnMediaEnded" Visibility="{Binding IsInIdle,
+        <MediaElement Style="{StaticResource Fade}" Name="myMediaElement" Stretch="UniformToFill" MediaEnded="MediaElement_OnMediaEnded" Visibility="{Binding IsInIdle,
                       Converter={StaticResource BoolToVis}}">
             <MediaElement.Triggers>
                 <EventTrigger RoutedEvent="MediaElement.Loaded">
@@ -59,9 +61,9 @@
                 </EventTrigger>
             </MediaElement.Triggers>
         </MediaElement>
-            <Image 
+        <Image 
                 Style="{StaticResource Fade}" Name="Buffer" Source="{Binding FrameBuffer}" Visibility="{Binding IsNotInIdle,
                           Converter={StaticResource BoolToVis}}">
-            </Image>
+        </Image>
     </Grid>
 </Window>

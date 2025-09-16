@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SharpDX;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
+using System.Drawing.Imaging;
+using Device = SharpDX.Direct3D11.Device;
 
 namespace Model
 {
-    using System;
-    using System.Drawing;
-    using System.Drawing.Imaging;
-    using System.Runtime.InteropServices;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using SharpDX;
-    using SharpDX.Direct3D11;
-    using SharpDX.DXGI;
-    using Device = SharpDX.Direct3D11.Device;
+
 
     public class FrameCapturedEventArgs : EventArgs
     {
@@ -23,7 +14,7 @@ namespace Model
         public FrameCapturedEventArgs(Bitmap bmp) => FrameBitmap = bmp;
     }
 
-    public class MyScreenCapturer : IDisposable
+    public class ScreenCapturer : IDisposable
     {
         public event EventHandler<FrameCapturedEventArgs> FrameCaptured;
 
@@ -37,7 +28,7 @@ namespace Model
         private int width;
         private int height;
 
-        public MyScreenCapturer(int adapterIndex = 0, int outputIndex = 0)
+        public ScreenCapturer(int adapterIndex = 0, int outputIndex = 0)
         {
             this.adapterIndex = adapterIndex;
             this.outputIndex = outputIndex;

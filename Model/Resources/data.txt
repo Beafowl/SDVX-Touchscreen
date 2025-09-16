@@ -9,4 +9,12 @@ Bereiche mit Glättung
 (1887,122) oben links
 (2560,1318) unten rechts
 
+Panel
+oben links
+x relative: 0.9564054663326238
+y relative: 0.81556195965417866
+unten rechts
+x relative: 1
+y relative: 0.92122958693563883
+
 

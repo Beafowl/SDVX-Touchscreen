@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
-using System.Drawing;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using Model.Enums;
 
 namespace Model
 {
@@ -23,24 +17,28 @@ namespace Model
         [DllImport("user32.dll")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        public static void SendClickWithoutMoving(int x, int y)
+        public static void SendMouseEvent(int x, int y, MouseEvent clickType = MouseEvent.Click)
         {
             // 1. Find the window under that screen-coordinate
             var pt = new Point(x, y);
-            IntPtr hWnd = NativeMethods.WindowFromPoint(pt);
+            IntPtr hWnd = WindowFromPoint(pt);
 
             if (hWnd == IntPtr.Zero)
                 return;  // no window there
 
             // 2. Convert to client-area coords
-            NativeMethods.ScreenToClient(hWnd, ref pt);
+            ScreenToClient(hWnd, ref pt);
             int lParam = (pt.Y << 16) | (pt.X & 0xFFFF);
 
-            // 3. “Click” it
-            NativeMethods.SendMessage(hWnd,
-                NativeMethods.WM_LBUTTONDOWN, new IntPtr(1), new IntPtr(lParam));
-            NativeMethods.SendMessage(hWnd,
-                NativeMethods.WM_LBUTTONUP, IntPtr.Zero, new IntPtr(lParam));
+            if (clickType == MouseEvent.Click)
+            {
+                SendMessage(hWnd, WM_LBUTTONDOWN, new IntPtr(1), new IntPtr(lParam));
+                SendMessage(hWnd, WM_LBUTTONUP, IntPtr.Zero, new IntPtr(lParam));
+            }
+            else if (clickType == MouseEvent.Pressed)
+                SendMessage(hWnd, WM_LBUTTONDOWN, new IntPtr(1), new IntPtr(lParam));
+            else
+                SendMessage(hWnd, WM_LBUTTONUP, IntPtr.Zero, new IntPtr(lParam));
         }
     }
 }
