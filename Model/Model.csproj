@@ -34,7 +34,10 @@
     <None Update="Resources\IdleAnimation.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\panelIconTemplate.png">
+    <None Update="Resources\panelIconTemplate1080P.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\panelIconTemplate1440P.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\screenshot1.png">

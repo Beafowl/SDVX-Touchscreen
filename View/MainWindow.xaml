@@ -8,11 +8,8 @@
         xmlns:local="clr-namespace:View"
         mc:Ignorable="d"
         Title="SDVX Touchscreen"
-        Height="1080"
-        Width="1920"
         PreviewMouseLeftButtonDown="OnMouseLeftButtonDown"
         PreviewMouseLeftButtonUp="OnMouseLeftButtonUp"
-        PreviewMouseMove="OnMouseMove"
         PreviewKeyDown="OnKeyDown"
         Topmost="True"
         Background="Black"
@@ -62,6 +59,7 @@
             </MediaElement.Triggers>
         </MediaElement>
         <Image 
+            Stretch="UniformToFill"
                 Style="{StaticResource Fade}" Name="Buffer" Source="{Binding FrameBuffer}" Visibility="{Binding IsNotInIdle,
                           Converter={StaticResource BoolToVis}}">
         </Image>

@@ -17,14 +17,11 @@ namespace ViewModel
 {
     public class MainViewModel : ObservableObject
     {
-        private readonly DialogService _dialogService = new DialogService();
-
+        // relative position of the panel icon normalized between 0 and 1
         private readonly double _panelx1 = 0.9564054663326238;
         private readonly double _panely1 = 0.81556195965417866;
         private readonly double _panelx2 = 1;
         private readonly double _panely2 = 0.92122958693563883;
-
-        public MouseProjector MouseProjector { get; set; }
 
         public AppConfiguration AppConfig { get; set; }
 
@@ -38,9 +35,21 @@ namespace ViewModel
 
         public MainViewModel()
         {
-            AppConfig = ConfigurationFactory.GetConfiguration(true, Resolution._1440P);
+            int screenWidth = (int)SystemParameters.PrimaryScreenWidth;
+            int screenHeight = (int)SystemParameters.PrimaryScreenHeight;
+            Resolution selectedResolution;
+            if (screenWidth == 1920 && screenHeight == 1080)
+                selectedResolution = Resolution._1080P;
+            else if (screenWidth == 2560 && screenHeight == 1440)
+                selectedResolution = Resolution._1440P;
+            else
+            {
+                System.Windows.MessageBox.Show($"Only 1080P and 1440P in landscape mode are supported. Your current resolution is {screenWidth}x{screenHeight}", "Error");
+                Environment.Exit(1);
+                return;
+            }
+            AppConfig = ConfigurationFactory.GetConfiguration(true, selectedResolution);
             FrameBuffer = new WriteableBitmap(AppConfig.WindowCaptureHeight, AppConfig.WindowCaptureWidth, 96, 96, PixelFormats.Bgra32, null);
-            MouseProjector = new MouseProjector(AppConfig.WindowXPos, AppConfig.WindowYPos);
             Capturer = new ScreenCapturer();
             Capturer.FrameCaptured += Capturer_FrameCaptured;
             Capturer.StartCapture();
@@ -106,7 +115,7 @@ namespace ViewModel
         }
 
         /// <summary>
-        /// Handles a captured mousclick.
+        /// Handles a captured mouse click.
         /// </summary>
         /// <param name="relativeX"></param>
         /// <param name="relativeY"></param>
@@ -115,7 +124,7 @@ namespace ViewModel
             if (IsInIdle && mouseEvent == MouseEvent.Pressed)
             {
                 // clickable panel icon found
-                if (TemplateMatcher.TemplateInImage(TakeScreenshot(), "./Resources/panelIconTemplate.png"))
+                if (TemplateMatcher.TemplateInImage(TakeScreenshot(), $"./Resources/panelIconTemplate{ResolutionMethods.GetResolutionString(AppConfig.Resolution)}.png"))
                 {
                     NativeMethods.SendMouseEvent(AppConfig.PanelIconXPos, AppConfig.PanelIconYPos);
                     IsInIdle = false;

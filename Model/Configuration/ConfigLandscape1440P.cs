@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Model.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,5 +41,7 @@ namespace Model.Configuration
         public override int PanelIconYPos { get; } = 145;
 
         public override bool IsInLandscapeMode { get; } = true;
+
+        public override Resolution Resolution { get; } = Resolution._1440P;
     }
 }

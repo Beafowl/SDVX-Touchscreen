@@ -20,13 +20,13 @@ namespace Model
 
         private readonly int adapterIndex;
         private readonly int outputIndex;
-        private Device device;
-        private OutputDuplication duplicator;
-        private Texture2D stagingTexture;
-        private CancellationTokenSource cts;
-        private Task captureTask;
-        private int width;
-        private int height;
+        private Device _device;
+        private OutputDuplication _duplicator;
+        private Texture2D _stagingTexture;
+        private CancellationTokenSource _cts;
+        private Task _captureTask;
+        private int _width;
+        private int _height;
 
         public ScreenCapturer(int adapterIndex = 0, int outputIndex = 0)
         {
@@ -40,15 +40,15 @@ namespace Model
             // 1) Create DXGI factory, adapter, device, and duplicator
             var factory = new Factory1();
             var adapter = factory.GetAdapter1(adapterIndex);
-            device = new Device(adapter);
+            _device = new Device(adapter);
 
             using (var output = adapter.GetOutput(outputIndex))
             using (var output1 = output.QueryInterface<Output1>())
             {
-                duplicator = output1.DuplicateOutput(device);
+                _duplicator = output1.DuplicateOutput(_device);
                 var bounds = output.Description.DesktopBounds;
-                width = bounds.Right - bounds.Left;
-                height = bounds.Bottom - bounds.Top;
+                _width = bounds.Right - bounds.Left;
+                _height = bounds.Bottom - bounds.Top;
             }
 
             // 2) Create a staging texture for CPU readback
@@ -57,128 +57,45 @@ namespace Model
                 CpuAccessFlags = CpuAccessFlags.Read,
                 BindFlags = BindFlags.None,
                 Format = Format.B8G8R8A8_UNorm,
-                Width = width,
-                Height = height,
+                Width = _width,
+                Height = _height,
                 OptionFlags = ResourceOptionFlags.None,
                 Usage = ResourceUsage.Staging,
                 SampleDescription = new SampleDescription(1, 0),
                 ArraySize = 1,
                 MipLevels = 1
             };
-            stagingTexture = new Texture2D(device, desc);
+            _stagingTexture = new Texture2D(_device, desc);
         }
 
         public void StartCapture(int frameIntervalMs = 16)
         {
-            if (captureTask != null) return;
+            if (_captureTask != null) return;
 
-            cts = new CancellationTokenSource();
-            captureTask = Task.Run(() => CaptureLoop(frameIntervalMs, cts.Token), cts.Token);
+            _cts = new CancellationTokenSource();
+            _captureTask = Task.Run(() => CaptureLoop(frameIntervalMs, _cts.Token), _cts.Token);
         }
 
         public void StopCapture()
         {
-            if (cts == null) return;
-            cts.Cancel();
-            captureTask.Wait();
-            captureTask = null;
-            cts.Dispose();
-            cts = null;
-        }
-
-        public Bitmap CaptureFrame()
-        {
-            bool frameTaken = false;
-            int frameIntervalMs = 16;
-
-
-            while (!frameTaken)
-            {
-                try
-                {
-                    var dc = device.ImmediateContext;
-
-                    // Acquire next frame
-                    Result frameResult = duplicator.TryAcquireNextFrame(500, out var frameInfo, out var desktopResource);
-                    if (frameResult != Result.Ok)
-                    {
-                        Console.WriteLine("Sleeping");
-                        Thread.Sleep(10000);
-                        InitializeDuplication();
-                        continue;
-                    }
-
-                    // Copy to staging texture
-                    using (var screenTex = desktopResource.QueryInterface<Texture2D>())
-                    {
-                        dc.CopyResource(screenTex, stagingTexture);
-                    }
-
-                    // Release frame asap
-                    duplicator.ReleaseFrame();
-                    desktopResource.Dispose();
-
-                    // Map and convert to Bitmap
-                    var dataBox = dc.MapSubresource(
-                        stagingTexture, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
-
-                    var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-                    var bmpData = bmp.LockBits(
-                        new Rectangle(0, 0, width, height),
-                        ImageLockMode.WriteOnly,
-                        bmp.PixelFormat);
-
-                    IntPtr srcPtr = dataBox.DataPointer;
-                    IntPtr dstPtr = bmpData.Scan0;
-                    int srcStride = dataBox.RowPitch;
-                    int dstStride = bmpData.Stride;
-                    int rowBytes = Math.Min(srcStride, dstStride);
-
-                    for (int y = 0; y < height; y++)
-                    {
-                        Utilities.CopyMemory(
-                            dstPtr + y * dstStride,
-                            srcPtr + y * srcStride,
-                            rowBytes);
-                    }
-
-                    bmp.UnlockBits(bmpData);
-                    dc.UnmapSubresource(stagingTexture, 0);
-
-                    return bmp;
-                }
-                catch (SharpDXException sx) when (sx.ResultCode == SharpDX.DXGI.ResultCode.WaitTimeout)
-                {
-                    // No new frame this interval—ignore
-                }
-                catch (SharpDXException ex) when (ex.ResultCode == SharpDX.DXGI.ResultCode.AccessLost)
-                {
-                    // The desktop duplication was lost (e.g. exclusive fullscreen entered)
-                    // Reinitialize duplicator & continue capturing
-                    InitializeDuplication();
-                }
-                catch (Exception ex)
-                {
-                    // Unexpected error: break or log
-                    Console.WriteLine("Capture error: " + ex);
-                    RecoverFromDeviceRemoval();
-                }
-
-                Thread.Sleep(frameIntervalMs);
-            }
-            throw new Exception("what");
+            if (_cts == null) return;
+            _cts.Cancel();
+            _captureTask.Wait();
+            _captureTask = null;
+            _cts.Dispose();
+            _cts = null;
         }
 
         private void CaptureLoop(int frameIntervalMs, CancellationToken token)
         {
-            var dc = device.ImmediateContext;
+            var dc = _device.ImmediateContext;
 
             while (!token.IsCancellationRequested)
             {
                 try
                 {
                     // Acquire next frame
-                    Result frameResult = duplicator.TryAcquireNextFrame(500, out var frameInfo, out var desktopResource);
+                    Result frameResult = _duplicator.TryAcquireNextFrame(500, out var frameInfo, out var desktopResource);
                     if (frameResult != Result.Ok)
                     {
                         Console.WriteLine("Sleeping");
@@ -190,20 +107,27 @@ namespace Model
                     // Copy to staging texture
                     using (var screenTex = desktopResource.QueryInterface<Texture2D>())
                     {
-                        dc.CopyResource(screenTex, stagingTexture);
+                        if (screenTex == null || screenTex.IsDisposed)
+                            throw new InvalidOperationException("screenTex is null or disposed.");
+
+                        if (_stagingTexture == null || _stagingTexture.IsDisposed)
+                            throw new InvalidOperationException("stagingTexture is null or disposed.");
+
+                        dc.CopySubresourceRegion(screenTex, 0, null, _stagingTexture, 0);
+                        // Release frame asap
+                        _duplicator.ReleaseFrame();
+                        desktopResource.Dispose();
                     }
 
-                    // Release frame asap
-                    duplicator.ReleaseFrame();
-                    desktopResource.Dispose();
+
 
                     // Map and convert to Bitmap
                     var dataBox = dc.MapSubresource(
-                        stagingTexture, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
+                        _stagingTexture, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
 
-                    var bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                    var bmp = new Bitmap(_width, _height, PixelFormat.Format32bppArgb);
                     var bmpData = bmp.LockBits(
-                        new Rectangle(0, 0, width, height),
+                        new Rectangle(0, 0, _width, _height),
                         ImageLockMode.WriteOnly,
                         bmp.PixelFormat);
 
@@ -213,7 +137,7 @@ namespace Model
                     int dstStride = bmpData.Stride;
                     int rowBytes = Math.Min(srcStride, dstStride);
 
-                    for (int y = 0; y < height; y++)
+                    for (int y = 0; y < _height; y++)
                     {
                         Utilities.CopyMemory(
                             dstPtr + y * dstStride,
@@ -222,7 +146,7 @@ namespace Model
                     }
 
                     bmp.UnlockBits(bmpData);
-                    dc.UnmapSubresource(stagingTexture, 0);
+                    dc.UnmapSubresource(_stagingTexture, 0);
 
                     // Fire event
                     FrameCaptured?.Invoke(this, new FrameCapturedEventArgs(bmp));
@@ -251,16 +175,16 @@ namespace Model
         public void Dispose()
         {
             StopCapture();
-            stagingTexture?.Dispose();
-            duplicator?.Dispose();
-            device?.Dispose();
+            _stagingTexture?.Dispose();
+            _duplicator?.Dispose();
+            _device?.Dispose();
         }
         private void RecoverFromDeviceRemoval()
         {
             // 1) Tear down
-            duplicator?.Dispose();
-            stagingTexture?.Dispose();
-            device?.Dispose();
+            _duplicator?.Dispose();
+            _stagingTexture?.Dispose();
+            _device?.Dispose();
 
             // 2) Re-init
             InitializeDuplication();

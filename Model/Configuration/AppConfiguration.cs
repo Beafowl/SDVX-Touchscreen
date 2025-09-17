@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Model.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,5 +41,7 @@ namespace Model.Configuration
         public abstract bool IsInLandscapeMode { get; }
 
         public bool IsInPortraitMode { get => !IsInLandscapeMode; }
+
+        public abstract Resolution Resolution { get; }
     }
 }
