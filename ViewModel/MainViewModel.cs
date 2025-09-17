@@ -82,11 +82,8 @@ namespace ViewModel
                     FrameBuffer.Unlock();
                 }, DispatcherPriority.Normal, CancellationToken.None);
             }
-            // raised when application gets closed
-            catch (TaskCanceledException e)
-            {
-
-            }
+            // TaskCancelledException raised when application gets closed
+            catch {}
         }
 
         private Bitmap TakeScreenshot()
